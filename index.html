@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metadata Editor — modifica i metadati delle tue foto</title>
+<meta name="description" content="Carica una foto JPEG, modifica i metadati EXIF (autore, fotocamera, data, copyright, GPS) e scaricala. Tutto nel browser, nulla viene caricato online.">
+<style>
+  :root{
+    --bg:#0f1220; --panel:#191d2f; --panel2:#222842;
+    --txt:#e8eaf2; --muted:#9aa3c0; --accent:#6c8cff; --accent2:#4cd6b4;
+    --border:#2c3354; --danger:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,#0f1220,#0c0e18); color:var(--txt); min-height:100vh;
+  }
+  header{padding:28px 20px 8px; text-align:center}
+  header h1{margin:0; font-size:26px; letter-spacing:.3px}
+  header p{margin:8px 0 0; color:var(--muted); font-size:14px}
+  .wrap{max-width:960px; margin:0 auto; padding:20px}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:18px}
+  .drop{
+    border:2px dashed var(--border); border-radius:16px; padding:40px 20px; text-align:center;
+    cursor:pointer; transition:.15s; background:var(--panel2);
+  }
+  .drop:hover,.drop.over{border-color:var(--accent); background:#252b48}
+  .drop strong{color:var(--accent)}
+  .drop small{display:block; color:var(--muted); margin-top:8px}
+  .hidden{display:none!important}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px}
+  input[type=text]{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+    background:#10131f; color:var(--txt); font-size:14px;
+  }
+  input[type=text]:focus{outline:none; border-color:var(--accent)}
+  .field{margin-bottom:6px}
+  .row-top{display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap}
+  .preview{flex:0 0 220px}
+  .preview img{width:220px; height:220px; object-fit:cover; border-radius:12px; border:1px solid var(--border); background:#000}
+  .fileinfo{flex:1; min-width:240px}
+  .fileinfo .name{font-weight:600; word-break:break-all}
+  .fileinfo .meta{color:var(--muted); font-size:13px; margin-top:4px}
+  .btns{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
+  button{
+    border:none; border-radius:10px; padding:12px 18px; font-size:14px; font-weight:600;
+    cursor:pointer; transition:.15s;
+  }
+  .primary{background:var(--accent); color:#0b1020}
+  .primary:hover{filter:brightness(1.1)}
+  .ghost{background:transparent; color:var(--muted); border:1px solid var(--border)}
+  .ghost:hover{color:var(--txt); border-color:var(--accent)}
+  h3{margin:18px 0 12px; font-size:15px; border-left:3px solid var(--accent); padding-left:10px}
+  .note{font-size:12px; color:var(--muted); margin-top:14px; text-align:center; line-height:1.5}
+  .note a{color:var(--accent)}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--accent2); color:#062018; padding:12px 20px; border-radius:10px; font-weight:600;
+    transition:.25s; opacity:0; pointer-events:none;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+  .badge{display:inline-block; background:var(--panel2); border:1px solid var(--border); color:var(--muted);
+    font-size:11px; padding:2px 8px; border-radius:20px; margin-left:8px; vertical-align:middle}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏷️ Metadata Editor</h1>
+  <p>Carica una foto JPEG, modifica i metadati EXIF e riscaricala. Tutto nel tuo browser — niente viene caricato online.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: upload -->
+  <div class="card" id="uploadCard">
+    <div class="drop" id="drop">
+      📂 <strong>Trascina qui una foto JPEG</strong> oppure clicca per sceglierla
+      <small>I file restano sul tuo dispositivo. Formati supportati: .jpg / .jpeg</small>
+    </div>
+    <input type="file" id="fileInput" accept="image/jpeg" class="hidden">
+  </div>
+
+  <!-- Step 2: editor -->
+  <div class="card hidden" id="editorCard">
+    <div class="row-top">
+      <div class="preview"><img id="thumb" alt="anteprima"></div>
+      <div class="fileinfo">
+        <div class="name" id="fname">—</div>
+        <div class="meta" id="fmeta">—</div>
+        <div class="btns">
+          <button class="ghost" id="resetBtn">↺ Cambia file</button>
+        </div>
+      </div>
+    </div>
+
+    <h3>Informazioni <span class="badge">descrizione</span></h3>
+    <div class="grid">
+      <div class="field"><label>Autore / Artista</label><input type="text" id="Artist" placeholder="es. Mario Rossi"></div>
+      <div class="field"><label>Copyright</label><input type="text" id="Copyright" placeholder="es. © 2026 Mario Rossi"></div>
+      <div class="field" style="grid-column:1 / -1"><label>Descrizione immagine</label><input type="text" id="ImageDescription" placeholder="Descrizione del contenuto"></div>
+    </div>
+
+    <h3>Dispositivo <span class="badge">fotocamera</span></h3>
+    <div class="grid">
+      <div class="field"><label>Marca (Make)</label><input type="text" id="Make" placeholder="es. Canon"></div>
+      <div class="field"><label>Modello (Model)</label><input type="text" id="Model" placeholder="es. EOS R6"></div>
+      <div class="field"><label>Software</label><input type="text" id="Software" placeholder="es. Lightroom"></div>
+      <div class="field"><label>Data e ora (YYYY:MM:DD HH:MM:SS)</label><input type="text" id="DateTime" placeholder="2026:06:11 14:30:00"></div>
+    </div>
+
+    <h3>Posizione <span class="badge">GPS</span></h3>
+    <div class="grid">
+      <div class="field"><label>Latitudine (decimale, + nord / − sud)</label><input type="text" id="lat" placeholder="es. 41.9028"></div>
+      <div class="field"><label>Longitudine (decimale, + est / − ovest)</label><input type="text" id="lon" placeholder="es. 12.4964"></div>
+    </div>
+
+    <div class="btns" style="margin-top:22px">
+      <button class="primary" id="downloadBtn">⬇️ Scarica foto con i nuovi metadati</button>
+      <button class="ghost" id="stripBtn">🧹 Rimuovi TUTTI i metadati e scarica</button>
+    </div>
+  </div>
+
+  <div class="note">
+    Funziona al 100% offline nel browser tramite <a href="https://github.com/hMatoba/piexifjs" target="_blank" rel="noopener">piexif.js</a>.
+    Nessun file viene inviato a un server.<br>
+    Suggerimento: i metadati EXIF esistono solo nei JPEG/TIFF — i PNG e i WebP non li usano.
+  </div>
+</div>
+
+<div class="toast" id="toast">Fatto!</div>
+
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const drop = $("drop"), fileInput = $("fileInput");
+  const uploadCard = $("uploadCard"), editorCard = $("editorCard");
+  const thumb = $("thumb"), fname = $("fname"), fmeta = $("fmeta");
+  const toast = $("toast");
+
+  // dataURL della foto corrente e nome file
+  let currentDataUrl = null;
+  let currentName = "immagine.jpg";
+
+  // mappa campi UI -> tag EXIF (gruppo: 0th = Image, Exif = Exif)
+  const TEXT_FIELDS = [
+    ["Artist",           "0th",  piexif.ImageIFD.Artist],
+    ["Copyright",        "0th",  piexif.ImageIFD.Copyright],
+    ["ImageDescription", "0th",  piexif.ImageIFD.ImageDescription],
+    ["Make",             "0th",  piexif.ImageIFD.Make],
+    ["Model",            "0th",  piexif.ImageIFD.Model],
+    ["Software",         "0th",  piexif.ImageIFD.Software],
+    ["DateTime",         "0th",  piexif.ImageIFD.DateTime],
+  ];
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 2200);
+  }
+
+  function humanSize(bytes){
+    if(bytes < 1024) return bytes + " B";
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
+    return (bytes/1024/1024).toFixed(2) + " MB";
+  }
+
+  // converte decimale -> [[deg,1],[min,1],[sec,100]] richiesto da EXIF (rational)
+  function toDMS(dec){
+    dec = Math.abs(dec);
+    const deg = Math.floor(dec);
+    const minFloat = (dec - deg) * 60;
+    const min = Math.floor(minFloat);
+    const sec = Math.round((minFloat - min) * 60 * 100);
+    return [[deg,1],[min,1],[sec,100]];
+  }
+
+  // legge un rational EXIF e lo riconverte in decimale
+  function fromDMS(dms, ref){
+    if(!dms || dms.length < 3) return "";
+    const d = dms[0][0]/dms[0][1];
+    const m = dms[1][0]/dms[1][1];
+    const s = dms[2][0]/dms[2][1];
+    let val = d + m/60 + s/3600;
+    if(ref === "S" || ref === "W") val = -val;
+    return val.toFixed(6);
+  }
+
+  function loadFile(file){
+    if(!file) return;
+    if(!/jpe?g$/i.test(file.name) && file.type !== "image/jpeg"){
+      showToast("Carica un file JPEG (.jpg)");
+      return;
+    }
+    currentName = file.name.replace(/\.(jpe?g)$/i, "") + "-metadata.jpg";
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentDataUrl = e.target.result;
+      thumb.src = currentDataUrl;
+      fname.textContent = file.name;
+      fmeta.textContent = humanSize(file.size) + " · " + (file.type || "image/jpeg");
+      populateFields(currentDataUrl);
+      uploadCard.classList.add("hidden");
+      editorCard.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // legge i metadati esistenti e riempie i campi
+  function populateFields(dataUrl){
+    let exif = {};
+    try { exif = piexif.load(dataUrl); } catch(_){ exif = {"0th":{}, "Exif":{}, "GPS":{}}; }
+    TEXT_FIELDS.forEach(([elId, group, tag]) => {
+      const v = exif[group] && exif[group][tag] != null ? exif[group][tag] : "";
+      $(elId).value = v;
+    });
+    // GPS
+    const gps = exif["GPS"] || {};
+    $("lat").value = fromDMS(gps[piexif.GPSIFD.GPSLatitude],  gps[piexif.GPSIFD.GPSLatitudeRef]);
+    $("lon").value = fromDMS(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]);
+  }
+
+  // costruisce l'oggetto EXIF dai campi e lo inserisce nell'immagine
+  function buildAndDownload(strip){
+    if(!currentDataUrl){ showToast("Nessun file caricato"); return; }
+    let result;
+    try {
+      if(strip){
+        result = piexif.remove(currentDataUrl);
+      } else {
+        const zeroth = {}, exifObj = {}, gps = {};
+        TEXT_FIELDS.forEach(([elId, group, tag]) => {
+          const val = $(elId).value.trim();
+          if(val !== ""){
+            if(group === "0th") zeroth[tag] = val;
+            else exifObj[tag] = val;
+          }
+        });
+        // GPS
+        const lat = parseFloat($("lat").value), lon = parseFloat($("lon").value);
+        if(!isNaN(lat) && !isNaN(lon)){
+          gps[piexif.GPSIFD.GPSLatitudeRef]  = lat >= 0 ? "N" : "S";
+          gps[piexif.GPSIFD.GPSLatitude]     = toDMS(lat);
+          gps[piexif.GPSIFD.GPSLongitudeRef] = lon >= 0 ? "E" : "W";
+          gps[piexif.GPSIFD.GPSLongitude]    = toDMS(lon);
+        }
+        const exifBytes = piexif.dump({"0th":zeroth, "Exif":exifObj, "GPS":gps});
+        result = piexif.insert(exifBytes, currentDataUrl);
+      }
+    } catch(err){
+      showToast("Errore: " + err.message);
+      return;
+    }
+    // download
+    const a = document.createElement("a");
+    a.href = result;
+    a.download = strip ? currentName.replace("-metadata","-pulita") : currentName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast(strip ? "Metadati rimossi ✔" : "Scaricata con i nuovi metadati ✔");
+  }
+
+  // --- eventi ---
+  drop.addEventListener("click", ()=>fileInput.click());
+  fileInput.addEventListener("change", e=>loadFile(e.target.files[0]));
+
+  ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev, e=>{
+    e.preventDefault(); drop.classList.add("over");
+  }));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev, e=>{
+    e.preventDefault(); drop.classList.remove("over");
+  }));
+  drop.addEventListener("drop", e=>{
+    if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+  });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    currentDataUrl = null; fileInput.value = "";
+    editorCard.classList.add("hidden");
+    uploadCard.classList.remove("hidden");
+  });
+  $("downloadBtn").addEventListener("click", ()=>buildAndDownload(false));
+  $("stripBtn").addEventListener("click", ()=>buildAndDownload(true));
+})();
+</script>
+</body>
+</html>
