@@ -13,11 +13,9 @@ Apri semplicemente `index.html` con doppio clic nel browser. Fatto.
 ## Metterla online gratis (GitHub Pages)
 
 1. Vai su **Settings → Pages** del repository.
-2. Alla voce *Branch* seleziona il branch che contiene `index.html` e cartella `/ (root)`, poi **Save**.
+2. Alla voce *Branch* seleziona `main` e cartella `/ (root)`, poi **Save**.
 3. Dopo qualche minuto l'app sarà raggiungibile a:
-   `https://<tuo-utente>.github.io/<nome-repo>/`
-
-Alternative gratuite altrettanto valide: trascinare `index.html` su [Netlify Drop](https://app.netlify.com/drop) o [Vercel](https://vercel.com).
+   `https://elboaness.github.io/metadata/`
 
 ## Note tecniche
 

@@ -142,11 +142,9 @@
   const thumb = $("thumb"), fname = $("fname"), fmeta = $("fmeta");
   const toast = $("toast");
 
-  // dataURL della foto corrente e nome file
   let currentDataUrl = null;
   let currentName = "immagine.jpg";
 
-  // mappa campi UI -> tag EXIF (gruppo: 0th = Image, Exif = Exif)
   const TEXT_FIELDS = [
     ["Artist",           "0th",  piexif.ImageIFD.Artist],
     ["Copyright",        "0th",  piexif.ImageIFD.Copyright],
@@ -169,7 +167,6 @@
     return (bytes/1024/1024).toFixed(2) + " MB";
   }
 
-  // converte decimale -> [[deg,1],[min,1],[sec,100]] richiesto da EXIF (rational)
   function toDMS(dec){
     dec = Math.abs(dec);
     const deg = Math.floor(dec);
@@ -179,7 +176,6 @@
     return [[deg,1],[min,1],[sec,100]];
   }
 
-  // legge un rational EXIF e lo riconverte in decimale
   function fromDMS(dms, ref){
     if(!dms || dms.length < 3) return "";
     const d = dms[0][0]/dms[0][1];
@@ -210,7 +206,6 @@
     reader.readAsDataURL(file);
   }
 
-  // legge i metadati esistenti e riempie i campi
   function populateFields(dataUrl){
     let exif = {};
     try { exif = piexif.load(dataUrl); } catch(_){ exif = {"0th":{}, "Exif":{}, "GPS":{}}; }
@@ -218,13 +213,11 @@
       const v = exif[group] && exif[group][tag] != null ? exif[group][tag] : "";
       $(elId).value = v;
     });
-    // GPS
     const gps = exif["GPS"] || {};
     $("lat").value = fromDMS(gps[piexif.GPSIFD.GPSLatitude],  gps[piexif.GPSIFD.GPSLatitudeRef]);
     $("lon").value = fromDMS(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]);
   }
 
-  // costruisce l'oggetto EXIF dai campi e lo inserisce nell'immagine
   function buildAndDownload(strip){
     if(!currentDataUrl){ showToast("Nessun file caricato"); return; }
     let result;
@@ -240,7 +233,6 @@
             else exifObj[tag] = val;
           }
         });
-        // GPS
         const lat = parseFloat($("lat").value), lon = parseFloat($("lon").value);
         if(!isNaN(lat) && !isNaN(lon)){
           gps[piexif.GPSIFD.GPSLatitudeRef]  = lat >= 0 ? "N" : "S";
@@ -255,7 +247,6 @@
       showToast("Errore: " + err.message);
       return;
     }
-    // download
     const a = document.createElement("a");
     a.href = result;
     a.download = strip ? currentName.replace("-metadata","-pulita") : currentName;
@@ -265,7 +256,6 @@
     showToast(strip ? "Metadati rimossi ✔" : "Scaricata con i nuovi metadati ✔");
   }
 
-  // --- eventi ---
   drop.addEventListener("click", ()=>fileInput.click());
   fileInput.addEventListener("change", e=>loadFile(e.target.files[0]));
 
