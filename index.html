@@ -3,289 +3,435 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metadata Editor — modifica i metadati delle tue foto</title>
-<meta name="description" content="Carica una foto JPEG, modifica i metadati EXIF (autore, fotocamera, data, copyright, GPS) e scaricala. Tutto nel browser, nulla viene caricato online.">
+<title>Metadata Editor</title>
+<meta name="description" content="Carica foto JPEG o video MP4/MOV, visualizza e modifica i metadati, scarica il file aggiornato. Tutto nel browser.">
 <style>
-  :root{
-    --bg:#0f1220; --panel:#191d2f; --panel2:#222842;
-    --txt:#e8eaf2; --muted:#9aa3c0; --accent:#6c8cff; --accent2:#4cd6b4;
-    --border:#2c3354; --danger:#ff6b6b;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    background:linear-gradient(180deg,#0f1220,#0c0e18); color:var(--txt); min-height:100vh;
-  }
-  header{padding:28px 20px 8px; text-align:center}
-  header h1{margin:0; font-size:26px; letter-spacing:.3px}
-  header p{margin:8px 0 0; color:var(--muted); font-size:14px}
-  .wrap{max-width:960px; margin:0 auto; padding:20px}
-  .card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:18px}
-  .drop{
-    border:2px dashed var(--border); border-radius:16px; padding:40px 20px; text-align:center;
-    cursor:pointer; transition:.15s; background:var(--panel2);
-  }
-  .drop:hover,.drop.over{border-color:var(--accent); background:#252b48}
-  .drop strong{color:var(--accent)}
-  .drop small{display:block; color:var(--muted); margin-top:8px}
-  .hidden{display:none!important}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-  @media(max-width:640px){.grid{grid-template-columns:1fr}}
-  label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px}
-  input[type=text]{
-    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-    background:#10131f; color:var(--txt); font-size:14px;
-  }
-  input[type=text]:focus{outline:none; border-color:var(--accent)}
-  .field{margin-bottom:6px}
-  .row-top{display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap}
-  .preview{flex:0 0 220px}
-  .preview img{width:220px; height:220px; object-fit:cover; border-radius:12px; border:1px solid var(--border); background:#000}
-  .fileinfo{flex:1; min-width:240px}
-  .fileinfo .name{font-weight:600; word-break:break-all}
-  .fileinfo .meta{color:var(--muted); font-size:13px; margin-top:4px}
-  .btns{display:flex; gap:12px; flex-wrap:wrap; margin-top:6px}
-  button{
-    border:none; border-radius:10px; padding:12px 18px; font-size:14px; font-weight:600;
-    cursor:pointer; transition:.15s;
-  }
-  .primary{background:var(--accent); color:#0b1020}
-  .primary:hover{filter:brightness(1.1)}
-  .ghost{background:transparent; color:var(--muted); border:1px solid var(--border)}
-  .ghost:hover{color:var(--txt); border-color:var(--accent)}
-  h3{margin:18px 0 12px; font-size:15px; border-left:3px solid var(--accent); padding-left:10px}
-  .note{font-size:12px; color:var(--muted); margin-top:14px; text-align:center; line-height:1.5}
-  .note a{color:var(--accent)}
-  .toast{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:var(--accent2); color:#062018; padding:12px 20px; border-radius:10px; font-weight:600;
-    transition:.25s; opacity:0; pointer-events:none;
-  }
-  .toast.show{transform:translateX(-50%) translateY(0); opacity:1}
-  .badge{display:inline-block; background:var(--panel2); border:1px solid var(--border); color:var(--muted);
-    font-size:11px; padding:2px 8px; border-radius:20px; margin-left:8px; vertical-align:middle}
+:root{--panel:#191d2f;--panel2:#222842;--txt:#e8eaf2;--muted:#9aa3c0;--accent:#6c8cff;--accent2:#4cd6b4;--border:#2c3354}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(180deg,#0f1220,#0c0e18);color:var(--txt);min-height:100vh}
+header{padding:28px 20px 8px;text-align:center}
+header h1{margin:0;font-size:26px}
+header p{margin:8px 0 0;color:var(--muted);font-size:14px}
+.wrap{max-width:960px;margin:0 auto;padding:20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:18px}
+.drop{border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:.15s;background:var(--panel2)}
+.drop:hover,.drop.over{border-color:var(--accent);background:#252b48}
+.drop strong{color:var(--accent)}
+.drop small{display:block;color:var(--muted);margin-top:8px}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#10131f;color:var(--txt);font-size:14px}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.field{margin-bottom:6px}
+.row-top{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.preview{flex:0 0 220px}
+.preview img,.preview video{width:220px;height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--border);background:#000;display:block}
+.fileinfo{flex:1;min-width:240px}
+.fileinfo .name{font-weight:600;word-break:break-all}
+.fileinfo .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+button{border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.primary{background:var(--accent);color:#0b1020}.primary:hover{filter:brightness(1.1)}
+.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.ghost:hover{color:var(--txt);border-color:var(--accent)}
+h3{margin:18px 0 12px;font-size:15px;border-left:3px solid var(--accent);padding-left:10px}
+.note{font-size:12px;color:var(--muted);margin-top:14px;text-align:center;line-height:1.6}
+.note a{color:var(--accent)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent2);color:#062018;padding:12px 20px;border-radius:10px;font-weight:600;transition:.25s;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.badge{display:inline-block;background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:11px;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+/* raw metadata */
+details.raw{margin-top:16px}
+details.raw summary{list-style:none;cursor:pointer;padding:10px 14px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);font-size:13px;font-weight:600;user-select:none}
+details.raw summary::before{content:"▶  ";font-size:11px;color:var(--accent)}
+details.raw[open] summary::before{content:"▼  "}
+details.raw summary::-webkit-details-marker{display:none}
+.raw-body{margin-top:6px;border-radius:10px;border:1px solid var(--border);overflow:hidden;max-height:300px;overflow-y:auto}
+.raw-table{width:100%;border-collapse:collapse;font-size:12px}
+.raw-table td{padding:6px 12px;border-top:1px solid var(--border);vertical-align:top}
+.raw-table tr:first-child td{border-top:none}
+.raw-table td:first-child{color:var(--muted);white-space:nowrap;font-family:monospace;width:38%}
+.raw-table td:last-child{word-break:break-all}
+.raw-empty{padding:14px;color:var(--muted);font-size:13px;text-align:center}
 </style>
 </head>
 <body>
 <header>
   <h1>🏷️ Metadata Editor</h1>
-  <p>Carica una foto JPEG, modifica i metadati EXIF e riscaricala. Tutto nel tuo browser — niente viene caricato online.</p>
+  <p>Carica una foto JPEG o un video MP4/MOV, visualizza i metadati originali, modificali e scarica il file aggiornato.<br>Tutto nel browser — nessun file viene caricato online.</p>
 </header>
-
 <div class="wrap">
-
-  <!-- Step 1: upload -->
   <div class="card" id="uploadCard">
     <div class="drop" id="drop">
-      📂 <strong>Trascina qui una foto JPEG</strong> oppure clicca per sceglierla
-      <small>I file restano sul tuo dispositivo. Formati supportati: .jpg / .jpeg</small>
+      📂 <strong>Trascina qui un file</strong> oppure clicca per sceglierlo
+      <small>📷 Foto: .jpg / .jpeg &nbsp;·&nbsp; 🎬 Video: .mp4 / .mov / .m4v</small>
     </div>
-    <input type="file" id="fileInput" accept="image/jpeg" class="hidden">
+    <input type="file" id="fileInput" accept="image/jpeg,.jpg,.jpeg,video/mp4,video/quicktime,.mp4,.mov,.m4v" class="hidden">
   </div>
 
-  <!-- Step 2: editor -->
   <div class="card hidden" id="editorCard">
     <div class="row-top">
-      <div class="preview"><img id="thumb" alt="anteprima"></div>
+      <div class="preview">
+        <img id="thumbImg" alt="anteprima">
+        <video id="thumbVid" muted playsinline controls></video>
+      </div>
       <div class="fileinfo">
-        <div class="name" id="fname">—</div>
-        <div class="meta" id="fmeta">—</div>
+        <div class="name" id="fname"></div>
+        <div class="meta" id="fmeta"></div>
         <div class="btns">
           <button class="ghost" id="resetBtn">↺ Cambia file</button>
         </div>
       </div>
     </div>
 
-    <h3>Informazioni <span class="badge">descrizione</span></h3>
-    <div class="grid">
-      <div class="field"><label>Autore / Artista</label><input type="text" id="Artist" placeholder="es. Mario Rossi"></div>
-      <div class="field"><label>Copyright</label><input type="text" id="Copyright" placeholder="es. © 2026 Mario Rossi"></div>
-      <div class="field" style="grid-column:1 / -1"><label>Descrizione immagine</label><input type="text" id="ImageDescription" placeholder="Descrizione del contenuto"></div>
+    <!-- Metadati originali (read-only) -->
+    <details class="raw" id="rawDetails" open>
+      <summary>Metadati originali del file</summary>
+      <div class="raw-body" id="rawBody"></div>
+    </details>
+
+    <!-- Campi immagine -->
+    <div id="imgFields">
+      <h3>Informazioni <span class="badge">descrizione</span></h3>
+      <div class="grid">
+        <div class="field"><label>Autore / Artista</label><input type="text" id="Artist" placeholder="es. Mario Rossi"></div>
+        <div class="field"><label>Copyright</label><input type="text" id="Copyright" placeholder="es. © 2026 Mario Rossi"></div>
+        <div class="field" style="grid-column:1/-1"><label>Descrizione immagine</label><input type="text" id="ImageDescription" placeholder="Descrizione del contenuto"></div>
+      </div>
+      <h3>Dispositivo <span class="badge">fotocamera</span></h3>
+      <div class="grid">
+        <div class="field"><label>Marca (Make)</label><input type="text" id="Make" placeholder="es. Canon"></div>
+        <div class="field"><label>Modello (Model)</label><input type="text" id="Model" placeholder="es. EOS R6"></div>
+        <div class="field"><label>Software</label><input type="text" id="Software" placeholder="es. Lightroom"></div>
+        <div class="field"><label>Data e ora (YYYY:MM:DD HH:MM:SS)</label><input type="text" id="DateTime" placeholder="2026:06:11 14:30:00"></div>
+      </div>
+      <h3>Posizione <span class="badge">GPS</span></h3>
+      <div class="grid">
+        <div class="field"><label>Latitudine (decimale, + nord / − sud)</label><input type="text" id="lat" placeholder="es. 41.9028"></div>
+        <div class="field"><label>Longitudine (decimale, + est / − ovest)</label><input type="text" id="lon" placeholder="es. 12.4964"></div>
+      </div>
     </div>
 
-    <h3>Dispositivo <span class="badge">fotocamera</span></h3>
-    <div class="grid">
-      <div class="field"><label>Marca (Make)</label><input type="text" id="Make" placeholder="es. Canon"></div>
-      <div class="field"><label>Modello (Model)</label><input type="text" id="Model" placeholder="es. EOS R6"></div>
-      <div class="field"><label>Software</label><input type="text" id="Software" placeholder="es. Lightroom"></div>
-      <div class="field"><label>Data e ora (YYYY:MM:DD HH:MM:SS)</label><input type="text" id="DateTime" placeholder="2026:06:11 14:30:00"></div>
-    </div>
-
-    <h3>Posizione <span class="badge">GPS</span></h3>
-    <div class="grid">
-      <div class="field"><label>Latitudine (decimale, + nord / − sud)</label><input type="text" id="lat" placeholder="es. 41.9028"></div>
-      <div class="field"><label>Longitudine (decimale, + est / − ovest)</label><input type="text" id="lon" placeholder="es. 12.4964"></div>
+    <!-- Campi video -->
+    <div id="vidFields" class="hidden">
+      <h3>Informazioni <span class="badge">video</span></h3>
+      <div class="grid">
+        <div class="field"><label>Titolo</label><input type="text" id="v_title" placeholder="es. Vacanze 2026"></div>
+        <div class="field"><label>Autore / Artista</label><input type="text" id="v_artist" placeholder="es. Mario Rossi"></div>
+        <div class="field"><label>Copyright</label><input type="text" id="v_copyright" placeholder="es. © 2026 Mario Rossi"></div>
+        <div class="field"><label>Anno / Data</label><input type="text" id="v_year" placeholder="es. 2026-06-11"></div>
+        <div class="field" style="grid-column:1/-1"><label>Descrizione / Commento</label><input type="text" id="v_comment" placeholder="Descrizione del contenuto"></div>
+        <div class="field"><label>Software / Encoder</label><input type="text" id="v_software" placeholder="es. Adobe Premiere"></div>
+        <div class="field"><label>Album / Categoria</label><input type="text" id="v_album" placeholder="es. Viaggi"></div>
+      </div>
     </div>
 
     <div class="btns" style="margin-top:22px">
-      <button class="primary" id="downloadBtn">⬇️ Scarica foto con i nuovi metadati</button>
+      <button class="primary" id="downloadBtn">⬇️ Scarica con i nuovi metadati</button>
       <button class="ghost" id="stripBtn">🧹 Rimuovi TUTTI i metadati e scarica</button>
     </div>
   </div>
 
   <div class="note">
-    Funziona al 100% offline nel browser tramite <a href="https://github.com/hMatoba/piexifjs" target="_blank" rel="noopener">piexif.js</a>.
-    Nessun file viene inviato a un server.<br>
-    Suggerimento: i metadati EXIF esistono solo nei JPEG/TIFF — i PNG e i WebP non li usano.
+    Funziona al 100% nel browser — nessun file viene inviato a un server.<br>
+    <strong>JPEG</strong>: metadati EXIF &nbsp;·&nbsp; <strong>MP4 / MOV</strong>: tag iTunes/QuickTime
   </div>
 </div>
-
-<div class="toast" id="toast">Fatto!</div>
+<div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
 <script>
 (function(){
-  "use strict";
-  const $ = id => document.getElementById(id);
-  const drop = $("drop"), fileInput = $("fileInput");
-  const uploadCard = $("uploadCard"), editorCard = $("editorCard");
-  const thumb = $("thumb"), fname = $("fname"), fmeta = $("fmeta");
-  const toast = $("toast");
+"use strict";
+const $=id=>document.getElementById(id);
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400);}
+function hSize(b){return b<1024?b+" B":b<1048576?(b/1024).toFixed(1)+" KB":(b/1048576).toFixed(2)+" MB";}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
-  // dataURL della foto corrente e nome file
-  let currentDataUrl = null;
-  let currentName = "immagine.jpg";
+let mode=null, imgDataUrl=null, vidBuf=null, vidObjUrl=null, outName="file";
 
-  // mappa campi UI -> tag EXIF (gruppo: 0th = Image, Exif = Exif)
-  const TEXT_FIELDS = [
-    ["Artist",           "0th",  piexif.ImageIFD.Artist],
-    ["Copyright",        "0th",  piexif.ImageIFD.Copyright],
-    ["ImageDescription", "0th",  piexif.ImageIFD.ImageDescription],
-    ["Make",             "0th",  piexif.ImageIFD.Make],
-    ["Model",            "0th",  piexif.ImageIFD.Model],
-    ["Software",         "0th",  piexif.ImageIFD.Software],
-    ["DateTime",         "0th",  piexif.ImageIFD.DateTime],
-  ];
+// ── EXIF tag names for raw display ──
+const ETAG={'0th':{270:'ImageDescription',271:'Make',272:'Model',274:'Orientation',282:'XResolution',283:'YResolution',296:'ResolutionUnit',305:'Software',306:'DateTime',315:'Artist',33432:'Copyright'},'Exif':{33434:'ExposureTime',33437:'FNumber',34855:'ISO',36867:'DateTimeOriginal',36868:'DateTimeDigitized',37383:'MeteringMode',37385:'Flash',37386:'FocalLength',41986:'ExposureMode',41987:'WhiteBalance',41989:'FocalLength35mm',42036:'LensModel'},'GPS':{1:'LatRef',2:'Latitude',3:'LonRef',4:'Longitude',5:'AltRef',6:'Altitude',7:'TimeStamp',29:'DateStamp'}};
+const MP4TAG={'©nam':'Titolo','©ART':'Autore/Artista','©alb':'Album','©day':'Anno/Data','©cmt':'Commento','©too':'Software','cprt':'Copyright','©gen':'Genere','desc':'Descrizione','©wrt':'Compositore','aART':'Artista album'};
 
-  function showToast(msg){
-    toast.textContent = msg;
-    toast.classList.add("show");
-    setTimeout(()=>toast.classList.remove("show"), 2200);
-  }
+function fmtExifVal(v){
+  if(v==null)return'';
+  if(Array.isArray(v))return v.map(x=>Array.isArray(x)?x[0]+'/'+x[1]:x).join(', ');
+  return String(v);
+}
 
-  function humanSize(bytes){
-    if(bytes < 1024) return bytes + " B";
-    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
-    return (bytes/1024/1024).toFixed(2) + " MB";
-  }
+function renderRaw(rows){
+  const el=$("rawBody");
+  if(!rows.length){el.innerHTML='<div class="raw-empty">Nessun metadato trovato</div>';return;}
+  el.innerHTML='<table class="raw-table"><tbody>'+rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')+'</tbody></table>';
+}
 
-  // converte decimale -> [[deg,1],[min,1],[sec,100]] richiesto da EXIF (rational)
-  function toDMS(dec){
-    dec = Math.abs(dec);
-    const deg = Math.floor(dec);
-    const minFloat = (dec - deg) * 60;
-    const min = Math.floor(minFloat);
-    const sec = Math.round((minFloat - min) * 60 * 100);
-    return [[deg,1],[min,1],[sec,100]];
-  }
+// ── IMAGE ──
+function loadImage(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    imgDataUrl=e.target.result; mode='image';
+    outName=file.name.replace(/\.jpe?g$/i,'')+'-metadata.jpg';
+    $("thumbImg").src=imgDataUrl; $("thumbImg").classList.remove("hidden");
+    $("thumbVid").classList.add("hidden");
+    $("imgFields").classList.remove("hidden"); $("vidFields").classList.add("hidden");
 
-  // legge un rational EXIF e lo riconverte in decimale
-  function fromDMS(dms, ref){
-    if(!dms || dms.length < 3) return "";
-    const d = dms[0][0]/dms[0][1];
-    const m = dms[1][0]/dms[1][1];
-    const s = dms[2][0]/dms[2][1];
-    let val = d + m/60 + s/3600;
-    if(ref === "S" || ref === "W") val = -val;
-    return val.toFixed(6);
-  }
+    let exif={'0th':{},'Exif':{},'GPS':{}};
+    try{exif=piexif.load(imgDataUrl);}catch(_){}
 
-  function loadFile(file){
-    if(!file) return;
-    if(!/jpe?g$/i.test(file.name) && file.type !== "image/jpeg"){
-      showToast("Carica un file JPEG (.jpg)");
-      return;
-    }
-    currentName = file.name.replace(/\.(jpe?g)$/i, "") + "-metadata.jpg";
-    const reader = new FileReader();
-    reader.onload = e => {
-      currentDataUrl = e.target.result;
-      thumb.src = currentDataUrl;
-      fname.textContent = file.name;
-      fmeta.textContent = humanSize(file.size) + " · " + (file.type || "image/jpeg");
-      populateFields(currentDataUrl);
-      uploadCard.classList.add("hidden");
-      editorCard.classList.remove("hidden");
-    };
-    reader.readAsDataURL(file);
-  }
+    // populate edit fields
+    [["Artist",piexif.ImageIFD.Artist],["Copyright",piexif.ImageIFD.Copyright],
+     ["ImageDescription",piexif.ImageIFD.ImageDescription],["Make",piexif.ImageIFD.Make],
+     ["Model",piexif.ImageIFD.Model],["Software",piexif.ImageIFD.Software],
+     ["DateTime",piexif.ImageIFD.DateTime]
+    ].forEach(([id,tag])=>{$(id).value=(exif['0th']&&exif['0th'][tag]!=null)?exif['0th'][tag]:''});
+    const g=exif['GPS']||{};
+    $("lat").value=dmsToDecStr(g[piexif.GPSIFD.GPSLatitude],g[piexif.GPSIFD.GPSLatitudeRef]);
+    $("lon").value=dmsToDecStr(g[piexif.GPSIFD.GPSLongitude],g[piexif.GPSIFD.GPSLongitudeRef]);
 
-  // legge i metadati esistenti e riempie i campi
-  function populateFields(dataUrl){
-    let exif = {};
-    try { exif = piexif.load(dataUrl); } catch(_){ exif = {"0th":{}, "Exif":{}, "GPS":{}}; }
-    TEXT_FIELDS.forEach(([elId, group, tag]) => {
-      const v = exif[group] && exif[group][tag] != null ? exif[group][tag] : "";
-      $(elId).value = v;
-    });
-    // GPS
-    const gps = exif["GPS"] || {};
-    $("lat").value = fromDMS(gps[piexif.GPSIFD.GPSLatitude],  gps[piexif.GPSIFD.GPSLatitudeRef]);
-    $("lon").value = fromDMS(gps[piexif.GPSIFD.GPSLongitude], gps[piexif.GPSIFD.GPSLongitudeRef]);
-  }
-
-  // costruisce l'oggetto EXIF dai campi e lo inserisce nell'immagine
-  function buildAndDownload(strip){
-    if(!currentDataUrl){ showToast("Nessun file caricato"); return; }
-    let result;
-    try {
-      if(strip){
-        result = piexif.remove(currentDataUrl);
-      } else {
-        const zeroth = {}, exifObj = {}, gps = {};
-        TEXT_FIELDS.forEach(([elId, group, tag]) => {
-          const val = $(elId).value.trim();
-          if(val !== ""){
-            if(group === "0th") zeroth[tag] = val;
-            else exifObj[tag] = val;
-          }
-        });
-        // GPS
-        const lat = parseFloat($("lat").value), lon = parseFloat($("lon").value);
-        if(!isNaN(lat) && !isNaN(lon)){
-          gps[piexif.GPSIFD.GPSLatitudeRef]  = lat >= 0 ? "N" : "S";
-          gps[piexif.GPSIFD.GPSLatitude]     = toDMS(lat);
-          gps[piexif.GPSIFD.GPSLongitudeRef] = lon >= 0 ? "E" : "W";
-          gps[piexif.GPSIFD.GPSLongitude]    = toDMS(lon);
-        }
-        const exifBytes = piexif.dump({"0th":zeroth, "Exif":exifObj, "GPS":gps});
-        result = piexif.insert(exifBytes, currentDataUrl);
+    // raw table
+    const rows=[];
+    const ifdLabel={'0th':'IFD0','Exif':'Exif','GPS':'GPS'};
+    for(const [ifd,data] of Object.entries(exif)){
+      if(!data||typeof data!=='object'||ifd==='thumbnail')continue;
+      for(const [tag,val] of Object.entries(data)){
+        const name=(ETAG[ifd]||{})[parseInt(tag)]||('#'+tag);
+        rows.push([(ifdLabel[ifd]||ifd)+' · '+name, fmtExifVal(val)]);
       }
-    } catch(err){
-      showToast("Errore: " + err.message);
-      return;
     }
-    // download
-    const a = document.createElement("a");
-    a.href = result;
-    a.download = strip ? currentName.replace("-metadata","-pulita") : currentName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    showToast(strip ? "Metadati rimossi ✔" : "Scaricata con i nuovi metadati ✔");
+    renderRaw(rows);
+    showEditor(file);
+  };
+  r.readAsDataURL(file);
+}
+
+function decToDMS(dec){
+  dec=Math.abs(dec);
+  const d=Math.floor(dec),mf=(dec-d)*60,m=Math.floor(mf),s=Math.round((mf-m)*60*100);
+  return[[d,1],[m,1],[s,100]];
+}
+function dmsToDecStr(dms,ref){
+  if(!dms||dms.length<3)return'';
+  const v=dms[0][0]/dms[0][1]+dms[1][0]/dms[1][1]/60+dms[2][0]/dms[2][1]/3600;
+  return((ref==='S'||ref==='W')?-v:v).toFixed(6);
+}
+
+function downloadImage(strip){
+  let result;
+  try{
+    if(strip){result=piexif.remove(imgDataUrl);}
+    else{
+      const z={},g={};
+      [["Artist",piexif.ImageIFD.Artist],["Copyright",piexif.ImageIFD.Copyright],
+       ["ImageDescription",piexif.ImageIFD.ImageDescription],["Make",piexif.ImageIFD.Make],
+       ["Model",piexif.ImageIFD.Model],["Software",piexif.ImageIFD.Software],
+       ["DateTime",piexif.ImageIFD.DateTime]
+      ].forEach(([id,tag])=>{const v=$(id).value.trim();if(v)z[tag]=v;});
+      const la=parseFloat($("lat").value),lo=parseFloat($("lon").value);
+      if(!isNaN(la)&&!isNaN(lo)){
+        g[piexif.GPSIFD.GPSLatitudeRef]=la>=0?'N':'S'; g[piexif.GPSIFD.GPSLatitude]=decToDMS(la);
+        g[piexif.GPSIFD.GPSLongitudeRef]=lo>=0?'E':'W'; g[piexif.GPSIFD.GPSLongitude]=decToDMS(lo);
+      }
+      result=piexif.insert(piexif.dump({'0th':z,'Exif':{},'GPS':g}),imgDataUrl);
+    }
+  }catch(e){toast('Errore: '+e.message);return;}
+  dl(result, strip?outName.replace('-metadata','-pulita'):outName);
+  toast(strip?'Metadati rimossi ✔':'Salvata con i nuovi metadati ✔');
+}
+
+// ── VIDEO (MP4/MOV binary parser/writer) ──
+function mp4Box(buf,type,s,e){
+  const v=new DataView(buf);
+  if(s==null)s=0; if(e==null)e=buf.byteLength;
+  let i=s;
+  while(i+8<=e){
+    let sz=v.getUint32(i);
+    const t=String.fromCharCode(v.getUint8(i+4),v.getUint8(i+5),v.getUint8(i+6),v.getUint8(i+7));
+    if(sz===1){sz=v.getUint32(i+8)*4294967296+v.getUint32(i+12);if(sz>buf.byteLength)break;}
+    if(sz===0)sz=e-i; if(sz<8)break;
+    if(t===type)return{s:i,e:i+sz,d:i+8};
+    i+=sz;
   }
+  return null;
+}
 
-  // --- eventi ---
-  drop.addEventListener("click", ()=>fileInput.click());
-  fileInput.addEventListener("change", e=>loadFile(e.target.files[0]));
+function mp4ReadTags(buf){
+  const moov=mp4Box(buf,'moov'); if(!moov)return null;
+  const udta=mp4Box(buf,'udta',moov.d,moov.e); if(!udta)return {};
+  const meta=mp4Box(buf,'meta',udta.d,udta.e); if(!meta)return {};
+  const ilst=mp4Box(buf,'ilst',meta.d+4,meta.e); if(!ilst)return {};
+  const res={},v=new DataView(buf);
+  let i=ilst.d;
+  while(i+8<=ilst.e){
+    const sz=v.getUint32(i); if(sz<8)break;
+    const tp=String.fromCharCode(v.getUint8(i+4),v.getUint8(i+5),v.getUint8(i+6),v.getUint8(i+7));
+    const db=mp4Box(buf,'data',i+8,i+sz);
+    if(db&&db.e-db.d>8)res[tp]=new TextDecoder().decode(new Uint8Array(buf,db.d+8,db.e-db.d-8));
+    i+=sz;
+  }
+  return res;
+}
 
-  ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev, e=>{
-    e.preventDefault(); drop.classList.add("over");
-  }));
-  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev, e=>{
-    e.preventDefault(); drop.classList.remove("over");
-  }));
-  drop.addEventListener("drop", e=>{
-    if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
-  });
+function mp4BuildIlst(tags){
+  const enc=new TextEncoder();
+  function mkData(val){
+    const vb=enc.encode(val),ab=new ArrayBuffer(16+vb.length),dv=new DataView(ab),u=new Uint8Array(ab);
+    dv.setUint32(0,ab.byteLength);u[4]=100;u[5]=97;u[6]=116;u[7]=97;dv.setUint32(8,1);u.set(vb,16);return ab;
+  }
+  function mkTag(tp,val){
+    const db=mkData(val),ab=new ArrayBuffer(8+db.byteLength),dv=new DataView(ab),u=new Uint8Array(ab);
+    dv.setUint32(0,ab.byteLength);const tb=enc.encode(tp);for(let i=0;i<4;i++)u[4+i]=tb[i]||0;
+    u.set(new Uint8Array(db),8);return ab;
+  }
+  const parts=Object.entries(tags).filter(([,v])=>v&&v.trim()).map(([k,v])=>mkTag(k,v.trim()));
+  const tot=parts.reduce((s,p)=>s+p.byteLength,0),ab=new ArrayBuffer(8+tot),dv=new DataView(ab),u=new Uint8Array(ab);
+  dv.setUint32(0,ab.byteLength);u[4]=105;u[5]=108;u[6]=115;u[7]=116; // 'ilst'
+  let pos=8;for(const p of parts){u.set(new Uint8Array(p),pos);pos+=p.byteLength;}
+  return ab;
+}
 
-  $("resetBtn").addEventListener("click", ()=>{
-    currentDataUrl = null; fileInput.value = "";
-    editorCard.classList.add("hidden");
-    uploadCard.classList.remove("hidden");
-  });
-  $("downloadBtn").addEventListener("click", ()=>buildAndDownload(false));
-  $("stripBtn").addEventListener("click", ()=>buildAndDownload(true));
+function mp4Rebuild(buf,udtaAb){
+  const moov=mp4Box(buf,'moov');if(!moov)throw new Error('File MP4/MOV non valido');
+  const v=new DataView(buf);
+  const keep=[];let i=moov.d;
+  while(i+8<=moov.e){
+    let sz=v.getUint32(i);
+    const tp=String.fromCharCode(v.getUint8(i+4),v.getUint8(i+5),v.getUint8(i+6),v.getUint8(i+7));
+    if(sz===0)sz=moov.e-i;if(sz<8)break;
+    if(tp!=='udta')keep.push([i,sz]);i+=sz;
+  }
+  const keepSz=keep.reduce((s,[,z])=>s+z,0);
+  const udtaSz=udtaAb?udtaAb.byteLength:0;
+  const newMoovSz=8+keepSz+udtaSz;
+  const delta=newMoovSz-(moov.e-moov.s);
+  const out=new ArrayBuffer(buf.byteLength+delta);
+  const ou=new Uint8Array(out),od=new DataView(out);
+  ou.set(new Uint8Array(buf,0,moov.s));
+  let pos=moov.s;
+  od.setUint32(pos,newMoovSz);pos+=4;
+  ou[pos++]=109;ou[pos++]=111;ou[pos++]=111;ou[pos++]=118; // 'moov'
+  for(const[ss,sz]of keep){ou.set(new Uint8Array(buf,ss,sz),pos);pos+=sz;}
+  if(udtaAb){ou.set(new Uint8Array(udtaAb),pos);pos+=udtaSz;}
+  ou.set(new Uint8Array(buf,moov.e),pos);
+  if(delta!==0){
+    const mdat=mp4Box(out,'mdat');
+    if(mdat&&moov.s<mdat.s-delta)fixOffsets(out,delta);
+  }
+  return out;
+}
+
+function fixOffsets(buf,delta){
+  const v=new DataView(buf),moov=mp4Box(buf,'moov');if(!moov)return;
+  function walk(s,e){
+    let i=s;
+    while(i+8<=e){
+      let sz=v.getUint32(i);
+      const tp=String.fromCharCode(v.getUint8(i+4),v.getUint8(i+5),v.getUint8(i+6),v.getUint8(i+7));
+      if(sz===0)sz=e-i;if(sz<8)break;
+      if(['trak','mdia','minf','stbl'].includes(tp))walk(i+8,i+sz);
+      else if(tp==='stco'){const n=v.getUint32(i+12);for(let j=0;j<n;j++){const o=i+16+j*4;v.setUint32(o,v.getUint32(o)+delta);}}
+      else if(tp==='co64'){const n=v.getUint32(i+12);for(let j=0;j<n;j++){const o=i+16+j*8;const hi=v.getUint32(o),lo=v.getUint32(o+4),val=hi*4294967296+lo+delta;v.setUint32(o,Math.floor(val/4294967296));v.setUint32(o+4,val>>>0);}}
+      i+=sz;
+    }
+  }
+  walk(moov.d,moov.e);
+}
+
+function mp4SetTags(buf,tags){
+  const ilst=mp4BuildIlst(tags);
+  const metaSz=12+ilst.byteLength,metaAb=new ArrayBuffer(metaSz),metaDv=new DataView(metaAb),metaU=new Uint8Array(metaAb);
+  metaDv.setUint32(0,metaSz);metaU[4]=109;metaU[5]=101;metaU[6]=116;metaU[7]=97; // 'meta'
+  metaU.set(new Uint8Array(ilst),12);
+  const udtaSz=8+metaSz,udtaAb=new ArrayBuffer(udtaSz),udtaDv=new DataView(udtaAb),udtaU=new Uint8Array(udtaAb);
+  udtaDv.setUint32(0,udtaSz);udtaU[4]=117;udtaU[5]=100;udtaU[6]=116;udtaU[7]=97; // 'udta'
+  udtaU.set(metaU,8);
+  return mp4Rebuild(buf,udtaAb);
+}
+
+function loadVideo(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    vidBuf=e.target.result; mode='video';
+    outName=file.name.replace(/\.(mp4|mov|m4v)$/i,'')+'-metadata.mp4';
+    if(vidObjUrl)URL.revokeObjectURL(vidObjUrl);
+    vidObjUrl=URL.createObjectURL(file);
+    $("thumbVid").src=vidObjUrl;$("thumbVid").classList.remove("hidden");
+    $("thumbImg").classList.add("hidden");
+    $("vidFields").classList.remove("hidden");$("imgFields").classList.add("hidden");
+
+    let tags={};try{tags=mp4ReadTags(vidBuf)||{};}catch(_){}
+    $("v_title").value=tags['©nam']||'';
+    $("v_artist").value=tags['©ART']||'';
+    $("v_copyright").value=tags['cprt']||'';
+    $("v_year").value=tags['©day']||'';
+    $("v_comment").value=tags['©cmt']||tags['desc']||'';
+    $("v_software").value=tags['©too']||'';
+    $("v_album").value=tags['©alb']||'';
+
+    const rows=Object.entries(tags).map(([k,v])=>[(MP4TAG[k]||k),v]);
+    renderRaw(rows);
+    showEditor(file);
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function downloadVideo(strip){
+  let outBuf;
+  try{
+    if(strip){outBuf=mp4Rebuild(vidBuf,null);}
+    else{
+      const t={};
+      const tv=$("v_title").value.trim();if(tv)t['©nam']=tv;
+      const ta=$("v_artist").value.trim();if(ta)t['©ART']=ta;
+      const tc=$("v_copyright").value.trim();if(tc)t['cprt']=tc;
+      const ty=$("v_year").value.trim();if(ty)t['©day']=ty;
+      const tm=$("v_comment").value.trim();if(tm){t['©cmt']=tm;t['desc']=tm;}
+      const ts=$("v_software").value.trim();if(ts)t['©too']=ts;
+      const tal=$("v_album").value.trim();if(tal)t['©alb']=tal;
+      outBuf=mp4SetTags(vidBuf,t);
+    }
+  }catch(e){toast('Errore: '+e.message);return;}
+  const url=URL.createObjectURL(new Blob([outBuf],{type:'video/mp4'}));
+  dl(url,strip?outName.replace('-metadata','-pulita'):outName);
+  setTimeout(()=>URL.revokeObjectURL(url),15000);
+  toast(strip?'Metadati rimossi ✔':'Salvato con i nuovi metadati ✔');
+}
+
+// ── SHARED ──
+function showEditor(file){
+  $("fname").textContent=file.name;
+  $("fmeta").textContent=hSize(file.size)+' · '+(file.type||'?');
+  $("rawDetails").open=true;
+  $("uploadCard").classList.add("hidden");
+  $("editorCard").classList.remove("hidden");
+}
+
+function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;document.body.appendChild(a);a.click();a.remove();}
+
+function loadFile(file){
+  if(!file)return;
+  const n=file.name.toLowerCase();
+  if(/\.jpe?g$/i.test(n)||file.type==='image/jpeg')loadImage(file);
+  else if(/\.(mp4|mov|m4v)$/i.test(n)||file.type==='video/mp4'||file.type==='video/quicktime')loadVideo(file);
+  else toast('Formato non supportato — usa JPEG o MP4/MOV');
+}
+
+// ── EVENTS ──
+const drop=$("drop"),fi=$("fileInput");
+drop.addEventListener('click',()=>fi.click());
+fi.addEventListener('change',e=>loadFile(e.target.files[0]));
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files.length)loadFile(e.dataTransfer.files[0]);});
+$("resetBtn").addEventListener('click',()=>{
+  mode=null;imgDataUrl=null;vidBuf=null;
+  if(vidObjUrl){URL.revokeObjectURL(vidObjUrl);vidObjUrl=null;}
+  fi.value='';
+  $("editorCard").classList.add("hidden");$("uploadCard").classList.remove("hidden");
+});
+$("downloadBtn").addEventListener('click',()=>{ if(mode==='image')downloadImage(false); else if(mode==='video')downloadVideo(false); });
+$("stripBtn").addEventListener('click',()=>{ if(mode==='image')downloadImage(true); else if(mode==='video')downloadVideo(true); });
 })();
 </script>
 </body>
